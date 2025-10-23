@@ -6,6 +6,16 @@ on:
     tags-ignore:
       - '**'
   pull_request:
+  workflow_dispatch:
+    inputs:
+      fastci:
+        description: 'Enable FastCI'
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
 jobs:
   test:
     runs-on: ${{ matrix.os }}-latest
@@ -15,6 +25,12 @@ jobs:
         os: [ ubuntu, windows, macos ]
     steps:
       - uses: actions/checkout@v4
+      - name: FastCI
+        if: ${{ fromJSON(github.event.inputs.fastci || 'false') }}
+        uses: jfrog-fastci/fastci@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fastci_otel_token: ${{ vars.FASTCI_TOKEN }}
 
       - name: Setup Go with cache
         uses: jfrog/.github/actions/install-go-with-cache@main
